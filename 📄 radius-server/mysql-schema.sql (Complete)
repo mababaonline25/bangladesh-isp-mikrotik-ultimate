@@ -1,0 +1,613 @@
+-- ============================================================================
+-- MySQL Schema for FreeRADIUS
+-- Version: 5.0.0
+-- Description: Complete database schema for FreeRADIUS with MikroTik support
+-- ============================================================================
+
+-- ============================================================================
+-- RADIUS Accounting Table
+-- ============================================================================
+
+CREATE TABLE IF NOT EXISTS `radacct` (
+  `radacctid` bigint(21) NOT NULL AUTO_INCREMENT,
+  `acctsessionid` varchar(64) NOT NULL DEFAULT '',
+  `acctuniqueid` varchar(32) NOT NULL DEFAULT '',
+  `username` varchar(64) NOT NULL DEFAULT '',
+  `groupname` varchar(64) NOT NULL DEFAULT '',
+  `realm` varchar(64) DEFAULT '',
+  `nasipaddress` varchar(15) NOT NULL DEFAULT '',
+  `nasportid` varchar(15) DEFAULT NULL,
+  `nasporttype` varchar(32) DEFAULT NULL,
+  `acctstarttime` datetime DEFAULT NULL,
+  `acctupdatetime` datetime DEFAULT NULL,
+  `acctstoptime` datetime DEFAULT NULL,
+  `acctinterval` int(12) DEFAULT NULL,
+  `acctsessiontime` int(12) DEFAULT NULL,
+  `acctauthentic` varchar(32) DEFAULT NULL,
+  `connectinfo_start` varchar(50) DEFAULT NULL,
+  `connectinfo_stop` varchar(50) DEFAULT NULL,
+  `acctinputoctets` bigint(20) DEFAULT NULL,
+  `acctoutputoctets` bigint(20) DEFAULT NULL,
+  `calledstationid` varchar(50) NOT NULL DEFAULT '',
+  `callingstationid` varchar(50) NOT NULL DEFAULT '',
+  `acctterminatecause` varchar(32) NOT NULL DEFAULT '',
+  `servicetype` varchar(32) DEFAULT NULL,
+  `framedprotocol` varchar(32) DEFAULT NULL,
+  `framedipaddress` varchar(15) NOT NULL DEFAULT '',
+  `framedipv6address` varchar(45) DEFAULT NULL,
+  `framedipv6prefix` varchar(45) DEFAULT NULL,
+  `framedinterfaceid` varchar(30) DEFAULT NULL,
+  `delegatedipv6prefix` varchar(45) DEFAULT NULL,
+  `class` varchar(64) DEFAULT NULL,
+  `session_time` int(12) DEFAULT NULL,
+  `session_stop_time` datetime DEFAULT NULL,
+  `billable_seconds` int(12) DEFAULT NULL,
+  `output_packets` bigint(20) DEFAULT NULL,
+  `input_packets` bigint(20) DEFAULT NULL,
+  `output_gigawords` bigint(20) DEFAULT NULL,
+  `input_gigawords` bigint(20) DEFAULT NULL,
+  `acct_delay_time` int(12) DEFAULT NULL,
+  `acct_input_octets` bigint(20) DEFAULT NULL,
+  `acct_output_octets` bigint(20) DEFAULT NULL,
+  `acct_input_packets` bigint(20) DEFAULT NULL,
+  `acct_output_packets` bigint(20) DEFAULT NULL,
+  `acct_input_gigawords` bigint(20) DEFAULT NULL,
+  `acct_output_gigawords` bigint(20) DEFAULT NULL,
+  `acct_input_gigawords` bigint(20) DEFAULT NULL,
+  `acct_output_gigawords` bigint(20) DEFAULT NULL,
+  PRIMARY KEY (`radacctid`),
+  KEY `username` (`username`),
+  KEY `framedipaddress` (`framedipaddress`),
+  KEY `acctsessionid` (`acctsessionid`),
+  KEY `acctsessiontime` (`acctsessiontime`),
+  KEY `acctuniqueid` (`acctuniqueid`),
+  KEY `acctstarttime` (`acctstarttime`),
+  KEY `acctstoptime` (`acctstoptime`),
+  KEY `nasipaddress` (`nasipaddress`),
+  KEY `acctupdatetime` (`acctupdatetime`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- ============================================================================
+-- RADIUS Check Table (User Authentication)
+-- ============================================================================
+
+CREATE TABLE IF NOT EXISTS `radcheck` (
+  `id` int(11) NOT NULL AUTO_INCREMENT,
+  `username` varchar(64) NOT NULL DEFAULT '',
+  `attribute` varchar(64) NOT NULL DEFAULT '',
+  `op` char(2) NOT NULL DEFAULT '==',
+  `value` varchar(253) NOT NULL DEFAULT '',
+  PRIMARY KEY (`id`),
+  KEY `username` (`username`(32))
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- ============================================================================
+-- RADIUS Group Check Table
+-- ============================================================================
+
+CREATE TABLE IF NOT EXISTS `radgroupcheck` (
+  `id` int(11) NOT NULL AUTO_INCREMENT,
+  `groupname` varchar(64) NOT NULL DEFAULT '',
+  `attribute` varchar(64) NOT NULL DEFAULT '',
+  `op` char(2) NOT NULL DEFAULT '==',
+  `value` varchar(253) NOT NULL DEFAULT '',
+  PRIMARY KEY (`id`),
+  KEY `groupname` (`groupname`(32))
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- ============================================================================
+-- RADIUS Group Reply Table
+-- ============================================================================
+
+CREATE TABLE IF NOT EXISTS `radgroupreply` (
+  `id` int(11) NOT NULL AUTO_INCREMENT,
+  `groupname` varchar(64) NOT NULL DEFAULT '',
+  `attribute` varchar(64) NOT NULL DEFAULT '',
+  `op` char(2) NOT NULL DEFAULT '=',
+  `value` varchar(253) NOT NULL DEFAULT '',
+  PRIMARY KEY (`id`),
+  KEY `groupname` (`groupname`(32))
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- ============================================================================
+-- RADIUS Reply Table
+-- ============================================================================
+
+CREATE TABLE IF NOT EXISTS `radreply` (
+  `id` int(11) NOT NULL AUTO_INCREMENT,
+  `username` varchar(64) NOT NULL DEFAULT '',
+  `attribute` varchar(64) NOT NULL DEFAULT '',
+  `op` char(2) NOT NULL DEFAULT '=',
+  `value` varchar(253) NOT NULL DEFAULT '',
+  PRIMARY KEY (`id`),
+  KEY `username` (`username`(32))
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- ============================================================================
+-- RADIUS User Group Table
+-- ============================================================================
+
+CREATE TABLE IF NOT EXISTS `radusergroup` (
+  `id` int(11) NOT NULL AUTO_INCREMENT,
+  `username` varchar(64) NOT NULL DEFAULT '',
+  `groupname` varchar(64) NOT NULL DEFAULT '',
+  `priority` int(11) NOT NULL DEFAULT '1',
+  PRIMARY KEY (`id`),
+  KEY `username` (`username`(32))
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- ============================================================================
+-- RADIUS Post-Auth Table
+-- ============================================================================
+
+CREATE TABLE IF NOT EXISTS `radpostauth` (
+  `id` int(11) NOT NULL AUTO_INCREMENT,
+  `username` varchar(64) NOT NULL DEFAULT '',
+  `pass` varchar(64) NOT NULL DEFAULT '',
+  `reply` varchar(32) NOT NULL DEFAULT '',
+  `authdate` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  `nasipaddress` varchar(15) DEFAULT NULL,
+  `callingstationid` varchar(50) DEFAULT NULL,
+  PRIMARY KEY (`id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- ============================================================================
+-- RADIUS NAS Table
+-- ============================================================================
+
+CREATE TABLE IF NOT EXISTS `nas` (
+  `id` int(11) NOT NULL AUTO_INCREMENT,
+  `nasname` varchar(128) NOT NULL,
+  `shortname` varchar(32) DEFAULT NULL,
+  `type` varchar(30) DEFAULT NULL,
+  `ports` int(11) DEFAULT NULL,
+  `secret` varchar(60) DEFAULT NULL,
+  `server` varchar(64) DEFAULT NULL,
+  `community` varchar(50) DEFAULT NULL,
+  `description` varchar(200) DEFAULT NULL,
+  `ipv6` varchar(45) DEFAULT NULL,
+  `ipv6prefix` varchar(45) DEFAULT NULL,
+  `coa_port` int(11) DEFAULT '1700',
+  `coa_secret` varchar(64) DEFAULT NULL,
+  PRIMARY KEY (`id`),
+  KEY `nasname` (`nasname`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- ============================================================================
+-- RADIUS Realm Table
+-- ============================================================================
+
+CREATE TABLE IF NOT EXISTS `realm` (
+  `id` int(11) NOT NULL AUTO_INCREMENT,
+  `realm` varchar(64) NOT NULL DEFAULT '',
+  `nas` varchar(128) DEFAULT NULL,
+  `authpool` varchar(32) DEFAULT NULL,
+  `acctpool` varchar(32) DEFAULT NULL,
+  `nostrip` enum('yes','no') DEFAULT 'no',
+  PRIMARY KEY (`id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- ============================================================================
+-- RADIUS Dictionary Table (MikroTik Attributes)
+-- ============================================================================
+
+CREATE TABLE IF NOT EXISTS `dictionary` (
+  `id` int(11) NOT NULL AUTO_INCREMENT,
+  `attribute` varchar(64) NOT NULL DEFAULT '',
+  `value` varchar(64) NOT NULL DEFAULT '',
+  `vendor` varchar(32) NOT NULL DEFAULT '',
+  PRIMARY KEY (`id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- ============================================================================
+-- MikroTik Specific Tables
+-- ============================================================================
+
+-- MikroTik Hotspot Users
+CREATE TABLE IF NOT EXISTS `hotspot_users` (
+  `id` int(11) NOT NULL AUTO_INCREMENT,
+  `username` varchar(64) NOT NULL,
+  `password` varchar(64) NOT NULL,
+  `profile` varchar(64) DEFAULT 'default',
+  `status` enum('active','inactive','expired') DEFAULT 'active',
+  `created_date` datetime DEFAULT CURRENT_TIMESTAMP,
+  `expiry_date` datetime DEFAULT NULL,
+  `last_login` datetime DEFAULT NULL,
+  `session_time` int(11) DEFAULT '0',
+  `upload_limit` bigint(20) DEFAULT '0',
+  `download_limit` bigint(20) DEFAULT '0',
+  PRIMARY KEY (`id`),
+  KEY `username` (`username`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- MikroTik PPPoE Users
+CREATE TABLE IF NOT EXISTS `pppoe_users` (
+  `id` int(11) NOT NULL AUTO_INCREMENT,
+  `username` varchar(64) NOT NULL,
+  `password` varchar(64) NOT NULL,
+  `profile` varchar(64) DEFAULT 'default',
+  `status` enum('active','inactive','expired') DEFAULT 'active',
+  `created_date` datetime DEFAULT CURRENT_TIMESTAMP,
+  `expiry_date` datetime DEFAULT NULL,
+  `last_login` datetime DEFAULT NULL,
+  `session_time` int(11) DEFAULT '0',
+  `upload_limit` bigint(20) DEFAULT '0',
+  `download_limit` bigint(20) DEFAULT '0',
+  `mac_address` varchar(17) DEFAULT NULL,
+  `ip_address` varchar(15) DEFAULT NULL,
+  PRIMARY KEY (`id`),
+  KEY `username` (`username`),
+  KEY `mac_address` (`mac_address`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- MikroTik Profiles
+CREATE TABLE IF NOT EXISTS `profiles` (
+  `id` int(11) NOT NULL AUTO_INCREMENT,
+  `name` varchar(64) NOT NULL,
+  `type` enum('pppoe','hotspot','vpn') DEFAULT 'pppoe',
+  `rate_limit_up` varchar(20) DEFAULT '0',
+  `rate_limit_down` varchar(20) DEFAULT '0',
+  `session_timeout` int(11) DEFAULT '0',
+  `idle_timeout` int(11) DEFAULT '0',
+  `upload_limit` bigint(20) DEFAULT '0',
+  `download_limit` bigint(20) DEFAULT '0',
+  `shared_users` int(11) DEFAULT '1',
+  `priority` int(11) DEFAULT '8',
+  `description` text,
+  PRIMARY KEY (`id`),
+  KEY `name` (`name`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- ============================================================================
+-- Billing Tables
+-- ============================================================================
+
+-- Invoices
+CREATE TABLE IF NOT EXISTS `invoices` (
+  `id` int(11) NOT NULL AUTO_INCREMENT,
+  `user_id` int(11) NOT NULL,
+  `username` varchar(64) NOT NULL,
+  `invoice_number` varchar(32) NOT NULL,
+  `amount` decimal(10,2) NOT NULL,
+  `paid_amount` decimal(10,2) DEFAULT '0.00',
+  `status` enum('pending','paid','overdue','cancelled') DEFAULT 'pending',
+  `created_date` datetime DEFAULT CURRENT_TIMESTAMP,
+  `due_date` datetime DEFAULT NULL,
+  `paid_date` datetime DEFAULT NULL,
+  `notes` text,
+  PRIMARY KEY (`id`),
+  KEY `username` (`username`),
+  KEY `invoice_number` (`invoice_number`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- Payments
+CREATE TABLE IF NOT EXISTS `payments` (
+  `id` int(11) NOT NULL AUTO_INCREMENT,
+  `username` varchar(64) NOT NULL,
+  `invoice_id` int(11) DEFAULT NULL,
+  `amount` decimal(10,2) NOT NULL,
+  `method` enum('cash','bkash','nagad','rocket','card','bank') DEFAULT 'cash',
+  `status` enum('pending','completed','failed') DEFAULT 'pending',
+  `transaction_id` varchar(64) DEFAULT NULL,
+  `payment_date` datetime DEFAULT CURRENT_TIMESTAMP,
+  `notes` text,
+  PRIMARY KEY (`id`),
+  KEY `username` (`username`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- ============================================================================
+-- Log Tables
+-- ============================================================================
+
+-- User Activity Log
+CREATE TABLE IF NOT EXISTS `user_activity` (
+  `id` int(11) NOT NULL AUTO_INCREMENT,
+  `username` varchar(64) NOT NULL,
+  `action` varchar(50) NOT NULL,
+  `ip_address` varchar(45) DEFAULT NULL,
+  `mac_address` varchar(17) DEFAULT NULL,
+  `nas_ip` varchar(15) DEFAULT NULL,
+  `session_id` varchar(64) DEFAULT NULL,
+  `created_date` datetime DEFAULT CURRENT_TIMESTAMP,
+  PRIMARY KEY (`id`),
+  KEY `username` (`username`),
+  KEY `created_date` (`created_date`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- System Log
+CREATE TABLE IF NOT EXISTS `system_log` (
+  `id` int(11) NOT NULL AUTO_INCREMENT,
+  `log_level` enum('info','warning','error','critical') DEFAULT 'info',
+  `message` text NOT NULL,
+  `created_date` datetime DEFAULT CURRENT_TIMESTAMP,
+  PRIMARY KEY (`id`),
+  KEY `created_date` (`created_date`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- ============================================================================
+-- Default Data Inserts
+-- ============================================================================
+
+-- Default RADIUS Groups
+INSERT INTO `radgroupreply` (`groupname`, `attribute`, `op`, `value`) VALUES
+('default', 'Auth-Type', ':=', 'Local'),
+('default', 'Service-Type', ':=', 'Framed-User'),
+('default', 'Framed-Protocol', ':=', 'PPP'),
+('default', 'Framed-IP-Address', ':=', '10.10.0.1'),
+('default', 'Framed-IP-Netmask', ':=', '255.255.0.0'),
+('default', 'Acct-Interim-Interval', ':=', '300');
+
+-- Bandwidth Packages
+INSERT INTO `radgroupreply` (`groupname`, `attribute`, `op`, `value`) VALUES
+('5Mbps', 'Mikrotik-Rate-Limit', ':=', '5M/5M'),
+('10Mbps', 'Mikrotik-Rate-Limit', ':=', '10M/10M'),
+('20Mbps', 'Mikrotik-Rate-Limit', ':=', '20M/20M'),
+('30Mbps', 'Mikrotik-Rate-Limit', ':=', '30M/30M'),
+('50Mbps', 'Mikrotik-Rate-Limit', ':=', '50M/50M'),
+('100Mbps', 'Mikrotik-Rate-Limit', ':=', '100M/100M'),
+('200Mbps', 'Mikrotik-Rate-Limit', ':=', '200M/200M'),
+('500Mbps', 'Mikrotik-Rate-Limit', ':=', '500M/500M'),
+('1Gbps', 'Mikrotik-Rate-Limit', ':=', '1G/1G'),
+('Unlimited', 'Mikrotik-Rate-Limit', ':=', '0/0');
+
+-- BDIX Packages
+INSERT INTO `radgroupreply` (`groupname`, `attribute`, `op`, `value`) VALUES
+('BDIX-20Mbps', 'Mikrotik-Rate-Limit', ':=', '20M/20M'),
+('BDIX-50Mbps', 'Mikrotik-Rate-Limit', ':=', '50M/50M'),
+('BDIX-100Mbps', 'Mikrotik-Rate-Limit', ':=', '100M/100M');
+
+-- VPN Packages
+INSERT INTO `radgroupreply` (`groupname`, `attribute`, `op`, `value`) VALUES
+('VPN-10Mbps', 'Mikrotik-Rate-Limit', ':=', '10M/10M'),
+('VPN-20Mbps', 'Mikrotik-Rate-Limit', ':=', '20M/20M'),
+('VPN-50Mbps', 'Mikrotik-Rate-Limit', ':=', '50M/50M');
+
+-- MikroTik Profiles
+INSERT INTO `profiles` (`name`, `type`, `rate_limit_up`, `rate_limit_down`, `description`) VALUES
+('Default', 'pppoe', '10M', '10M', 'Default PPPoE Profile'),
+('Residential', 'pppoe', '20M', '20M', 'Residential Package'),
+('Business', 'pppoe', '50M', '50M', 'Business Package'),
+('Premium', 'pppoe', '100M', '100M', 'Premium Package'),
+('Enterprise', 'pppoe', '500M', '500M', 'Enterprise Package'),
+('Unlimited', 'pppoe', '0', '0', 'Unlimited Package');
+
+-- Default NAS
+INSERT INTO `nas` (`nasname`, `shortname`, `type`, `secret`, `description`) VALUES
+('192.168.20.1', 'main-router', 'mikrotik', 'CHANGE-THIS-SECRET', 'Main MikroTik Router'),
+('10.1.200.2', 'backup-router', 'mikrotik', 'CHANGE-THIS-SECRET', 'Backup MikroTik Router');
+
+-- Test Users
+INSERT INTO `radcheck` (`username`, `attribute`, `op`, `value`) VALUES
+('testuser', 'Cleartext-Password', ':=', 'test123'),
+('premiumuser', 'Cleartext-Password', ':=', 'premium123'),
+('businessuser', 'Cleartext-Password', ':=', 'business123'),
+('vpnuser', 'Cleartext-Password', ':=', 'vpn123'),
+('hotspotuser', 'Cleartext-Password', ':=', 'hotspot123');
+
+INSERT INTO `radusergroup` (`username`, `groupname`, `priority`) VALUES
+('testuser', 'default', 1),
+('testuser', '10Mbps', 2),
+('premiumuser', 'default', 1),
+('premiumuser', '100Mbps', 2),
+('businessuser', 'default', 1),
+('businessuser', '200Mbps', 2),
+('vpnuser', 'default', 1),
+('vpnuser', 'VPN-20Mbps', 2);
+
+-- Hotspot Users
+INSERT INTO `hotspot_users` (`username`, `password`, `profile`, `status`) VALUES
+('hotspotuser', 'hotspot123', 'default', 'active'),
+('guest1', 'guest123', 'default', 'active'),
+('guest2', 'guest456', 'default', 'active');
+
+-- ============================================================================
+-- Stored Procedures for User Management
+-- ============================================================================
+
+DELIMITER //
+
+-- Add User Procedure
+CREATE PROCEDURE `add_user`(
+  IN p_username VARCHAR(64),
+  IN p_password VARCHAR(64),
+  IN p_package VARCHAR(64),
+  IN p_user_type VARCHAR(20)
+)
+BEGIN
+  DECLARE EXIT HANDLER FOR SQLEXCEPTION
+  BEGIN
+    ROLLBACK;
+    SELECT 'Error adding user' AS message;
+  END;
+
+  START TRANSACTION;
+  
+  -- Add to radcheck
+  INSERT INTO radcheck (username, attribute, op, value)
+  VALUES (p_username, 'Cleartext-Password', ':=', p_password);
+  
+  -- Add to radusergroup
+  INSERT INTO radusergroup (username, groupname, priority)
+  VALUES (p_username, 'default', 1);
+  
+  INSERT INTO radusergroup (username, groupname, priority)
+  VALUES (p_username, p_package, 2);
+  
+  COMMIT;
+  
+  SELECT 'User added successfully' AS message;
+END //
+
+-- Remove User Procedure
+CREATE PROCEDURE `remove_user`(
+  IN p_username VARCHAR(64)
+)
+BEGIN
+  DECLARE EXIT HANDLER FOR SQLEXCEPTION
+  BEGIN
+    ROLLBACK;
+    SELECT 'Error removing user' AS message;
+  END;
+
+  START TRANSACTION;
+  
+  DELETE FROM radcheck WHERE username = p_username;
+  DELETE FROM radusergroup WHERE username = p_username;
+  DELETE FROM radreply WHERE username = p_username;
+  DELETE FROM radacct WHERE username = p_username;
+  
+  COMMIT;
+  
+  SELECT 'User removed successfully' AS message;
+END //
+
+-- Get User Details Procedure
+CREATE PROCEDURE `get_user_details`(
+  IN p_username VARCHAR(64)
+)
+BEGIN
+  SELECT 
+    rc.username,
+    rc.value AS password,
+    rg.groupname AS package,
+    rg.priority,
+    ra.acctinputoctets AS total_download,
+    ra.acctoutputoctets AS total_upload,
+    ra.acctsessiontime AS total_time,
+    ra.acctstarttime AS last_session_start
+  FROM radcheck rc
+  LEFT JOIN radusergroup rg ON rc.username = rg.username
+  LEFT JOIN radacct ra ON rc.username = ra.username
+  WHERE rc.username = p_username
+  ORDER BY ra.acctstarttime DESC
+  LIMIT 1;
+END //
+
+-- Get Active Users Procedure
+CREATE PROCEDURE `get_active_users`()
+BEGIN
+  SELECT 
+    username,
+    framedipaddress AS ip_address,
+    callingstationid AS mac_address,
+    acctstarttime AS start_time,
+    acctsessiontime AS session_time,
+    acctinputoctets AS download,
+    acctoutputoctets AS upload
+  FROM radacct
+  WHERE acctstoptime IS NULL
+  ORDER BY acctstarttime DESC;
+END //
+
+-- Get Usage Statistics Procedure
+CREATE PROCEDURE `get_usage_stats`(
+  IN p_username VARCHAR(64),
+  IN p_start_date DATETIME,
+  IN p_end_date DATETIME
+)
+BEGIN
+  SELECT 
+    SUM(acctinputoctets) AS total_download,
+    SUM(acctoutputoctets) AS total_upload,
+    SUM(acctsessiontime) AS total_time,
+    COUNT(*) AS sessions
+  FROM radacct
+  WHERE username = p_username
+    AND acctstarttime BETWEEN p_start_date AND p_end_date;
+END //
+
+DELIMITER ;
+
+-- ============================================================================
+-- Triggers
+-- ============================================================================
+
+-- Log User Login Trigger
+DELIMITER //
+
+CREATE TRIGGER `log_user_login` 
+AFTER INSERT ON `radacct`
+FOR EACH ROW
+BEGIN
+  INSERT INTO user_activity (username, action, ip_address, session_id)
+  VALUES (NEW.username, 'login', NEW.framedipaddress, NEW.acctsessionid);
+END //
+
+DELIMITER ;
+
+-- ============================================================================
+-- Views for Reporting
+-- ============================================================================
+
+-- Active Users View
+CREATE OR REPLACE VIEW `v_active_users` AS
+SELECT 
+  username,
+  framedipaddress AS ip_address,
+  callingstationid AS mac_address,
+  acctstarttime AS login_time,
+  acctsessiontime AS session_seconds,
+  acctinputoctets AS downloaded_bytes,
+  acctoutputoctets AS uploaded_bytes,
+  acctinputoctets + acctoutputoctets AS total_bytes,
+  nasipaddress AS nas_ip
+FROM radacct
+WHERE acctstoptime IS NULL;
+
+-- User Summary View
+CREATE OR REPLACE VIEW `v_user_summary` AS
+SELECT 
+  rc.username,
+  rc.value AS password,
+  MAX(rg.groupname) AS package,
+  COUNT(ra.radacctid) AS total_sessions,
+  SUM(ra.acctsessiontime) AS total_time_seconds,
+  SUM(ra.acctinputoctets) AS total_download_bytes,
+  SUM(ra.acctoutputoctets) AS total_upload_bytes,
+  MAX(ra.acctstarttime) AS last_login,
+  CASE 
+    WHEN MAX(ra.acctstoptime) IS NULL THEN 'Active'
+    ELSE 'Inactive'
+  END AS status
+FROM radcheck rc
+LEFT JOIN radusergroup rg ON rc.username = rg.username
+LEFT JOIN radacct ra ON rc.username = ra.username
+WHERE rc.attribute = 'Cleartext-Password'
+GROUP BY rc.username, rc.value;
+
+-- Billing Summary View
+CREATE OR REPLACE VIEW `v_billing_summary` AS
+SELECT 
+  i.username,
+  COUNT(i.id) AS total_invoices,
+  SUM(i.amount) AS total_amount,
+  SUM(i.paid_amount) AS total_paid,
+  SUM(i.amount - i.paid_amount) AS total_due,
+  COUNT(CASE WHEN i.status = 'pending' THEN 1 END) AS pending_invoices,
+  COUNT(CASE WHEN i.status = 'overdue' THEN 1 END) AS overdue_invoices
+FROM invoices i
+GROUP BY i.username;
+
+-- ============================================================================
+-- Indexes for Performance
+-- ============================================================================
+
+CREATE INDEX idx_radacct_username ON radacct(username);
+CREATE INDEX idx_radacct_start_time ON radacct(acctstarttime);
+CREATE INDEX idx_radacct_stop_time ON radacct(acctstoptime);
+CREATE INDEX idx_radacct_username_start ON radacct(username, acctstarttime);
+CREATE INDEX idx_radcheck_username ON radcheck(username);
+CREATE INDEX idx_radusergroup_username ON radusergroup(username);
+CREATE INDEX idx_radusergroup_groupname ON radusergroup(groupname);
+CREATE INDEX idx_hotspot_users_username ON hotspot_users(username);
+CREATE INDEX idx_pppoe_users_username ON pppoe_users(username);
+CREATE INDEX idx_pppoe_users_mac ON pppoe_users(mac_address);
+CREATE INDEX idx_invoices_username ON invoices(username);
+CREATE INDEX idx_invoices_status ON invoices(status);
+CREATE INDEX idx_payments_username ON payments(username);
+CREATE INDEX idx_user_activity_username ON user_activity(username);
+CREATE INDEX idx_user_activity_created ON user_activity(created_date);
+
+-- ============================================================================
+-- END OF SCHEMA
+-- ============================================================================

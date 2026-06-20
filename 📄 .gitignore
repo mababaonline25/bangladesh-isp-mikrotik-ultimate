@@ -1,0 +1,50 @@
+# MikroTik
+*.backup
+*.backup.*
+*.rsc.bak
+*.log
+*.rsc
+
+# Backup files
+backup-*.rsc
+backup-*.backup
+users-*.rsc
+auto-*.rsc
+
+# OS
+.DS_Store
+Thumbs.db
+*.swp
+*.swo
+*~
+
+# IDE
+.vscode/
+.idea/
+*.sublime-*
+
+# Password files (IMPORTANT!)
+**/secrets*
+**/passwords*
+**/*.key
+**/private*
+**/*.pem
+**/*.cert
+**/*.crt
+
+# Temporary files
+*.tmp
+*.temp
+*.bak
+
+# Radius
+radius-server/*.conf.backup
+radius-server/*.sql.bak
+
+# Tools output
+tools/output/
+tools/reports/
+
+# Documentation build
+docs/_build/
+docs/.build/

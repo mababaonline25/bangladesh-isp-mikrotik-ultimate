@@ -1,0 +1,117 @@
+# ============================================================================
+# MikroTik RADIUS Dictionary
+# Version: 5.0.0
+# Description: MikroTik specific RADIUS attributes
+# ============================================================================
+
+# ============================================================================
+# Vendor Definition
+# ============================================================================
+
+VENDOR          MikroTik       14988
+
+# ============================================================================
+# MikroTik Attributes
+# ============================================================================
+
+ATTRIBUTE       Mikrotik-Recv-Limit            1       integer
+ATTRIBUTE       Mikrotik-Xmit-Limit            2       integer
+ATTRIBUTE       Mikrotik-Group                 3       string
+ATTRIBUTE       Mikrotik-Wireless-Forward      4       integer
+ATTRIBUTE       Mikrotik-Wireless-Skip-Dfs     5       integer
+ATTRIBUTE       Mikrotik-Wireless-Security    6       string
+ATTRIBUTE       Mikrotik-Wireless-Encryption  7       string
+ATTRIBUTE       Mikrotik-Wireless-Key         8       string
+ATTRIBUTE       Mikrotik-Wireless-Wep-Key     9       string
+ATTRIBUTE       Mikrotik-Wireless-Auth-Algo   10      integer
+ATTRIBUTE       Mikrotik-Wireless-Wpa-Psk     11      string
+ATTRIBUTE       Mikrotik-Wireless-Wpa2-Psk    12      string
+ATTRIBUTE       Mikrotik-Wireless-Radius-Mac  13      string
+ATTRIBUTE       Mikrotik-Wireless-Access-List 14      string
+ATTRIBUTE       Mikrotik-Wireless-Connect-List15      string
+ATTRIBUTE       Mikrotik-Wireless-Mac-Auth    16      string
+ATTRIBUTE       Mikrotik-Wireless-Interworking 17     string
+ATTRIBUTE       Mikrotik-Wireless-Hotspot2    18      string
+
+# QoS Attributes
+ATTRIBUTE       Mikrotik-Rate-Limit            19      string
+ATTRIBUTE       Mikrotik-Packet-Mark           20      string
+ATTRIBUTE       Mikrotik-Address-List          21      string
+ATTRIBUTE       Mikrotik-Queue-Time            22      integer
+ATTRIBUTE       Mikrotik-Queue-Bytes           23      integer
+ATTRIBUTE       Mikrotik-Queue-Packets         24      integer
+
+# VPN Attributes
+ATTRIBUTE       Mikrotik-VPN-IP                25      ipaddr
+ATTRIBUTE       Mikrotik-VPN-DNS               26      ipaddr
+ATTRIBUTE       Mikrotik-VPN-Route             27      string
+ATTRIBUTE       Mikrotik-VPN-Protocol          28      string
+ATTRIBUTE       Mikrotik-VPN-Encryption        29      string
+
+# Hotspot Attributes
+ATTRIBUTE       Mikrotik-Hotspot-Profile       30      string
+ATTRIBUTE       Mikrotik-Hotspot-Address       31      ipaddr
+ATTRIBUTE       Mikrotik-Hotspot-Uptime        32      integer
+ATTRIBUTE       Mikrotik-Hotspot-Idle-Timeout  33      integer
+ATTRIBUTE       Mikrotik-Hotspot-Session-Timeout 34    integer
+
+# PPP Attributes
+ATTRIBUTE       Mikrotik-PPP-Address           35      ipaddr
+ATTRIBUTE       Mikrotik-PPP-DNS               36      ipaddr
+ATTRIBUTE       Mikrotik-PPP-WINS              37      ipaddr
+ATTRIBUTE       Mikrotik-PPP-Encryption        38      string
+ATTRIBUTE       Mikrotik-PPP-Compression       39      string
+
+# Billing Attributes
+ATTRIBUTE       Mikrotik-Billing-Plan          40      string
+ATTRIBUTE       Mikrotik-Billing-Expiry        41      date
+ATTRIBUTE       Mikrotik-Billing-Status        42      string
+ATTRIBUTE       Mikrotik-Billing-Data-Limit    43      integer
+ATTRIBUTE       Mikrotik-Billing-Time-Limit    44      integer
+
+# Security Attributes
+ATTRIBUTE       Mikrotik-Security-MAC          45      string
+ATTRIBUTE       Mikrotik-Security-IP           46      ipaddr
+ATTRIBUTE       Mikrotik-Security-Auth-Type    47      string
+ATTRIBUTE       Mikrotik-Security-Session-ID   48      string
+
+# Advanced Attributes
+ATTRIBUTE       Mikrotik-User-Group            49      string
+ATTRIBUTE       Mikrotik-User-Notes            50      string
+ATTRIBUTE       Mikrotik-User-Phone            51      string
+ATTRIBUTE       Mikrotik-User-Email            52      string
+ATTRIBUTE       Mikrotik-User-Address          53      string
+
+# IPv6 Attributes
+ATTRIBUTE       Mikrotik-IPv6-Address          54      ipv6addr
+ATTRIBUTE       Mikrotik-IPv6-Prefix           55      ipv6prefix
+ATTRIBUTE       Mikrotik-IPv6-DNS              56      ipv6addr
+ATTRIBUTE       Mikrotik-IPv6-Route            57      string
+
+# ============================================================================
+# MikroTik Vendor-Specific Attributes
+# ============================================================================
+
+VENDOR-ATTR     MikroTik         Mikrotik-Recv-Limit            1       integer
+VENDOR-ATTR     MikroTik         Mikrotik-Xmit-Limit            2       integer
+VENDOR-ATTR     MikroTik         Mikrotik-Group                 3       string
+VENDOR-ATTR     MikroTik         Mikrotik-Rate-Limit            4       string
+VENDOR-ATTR     MikroTik         Mikrotik-Address-List          5       string
+VENDOR-ATTR     MikroTik         Mikrotik-Queue-Time            6       integer
+VENDOR-ATTR     MikroTik         Mikrotik-Queue-Bytes           7       integer
+VENDOR-ATTR     MikroTik         Mikrotik-Queue-Packets         8       integer
+
+# ============================================================================
+# MikroTik Value Pairs
+# ============================================================================
+
+# Rate-Limit Formats
+VALUE           Mikrotik-Rate-Limit            5M/5M                  1
+VALUE           Mikrotik-Rate-Limit            10M/10M                2
+VALUE           Mikrotik-Rate-Limit            20M/20M                3
+VALUE           Mikrotik-Rate-Limit            50M/50M                4
+VALUE           Mikrotik-Rate-Limit            100M/100M              5
+VALUE           Mikrotik-Rate-Limit            200M/200M              6
+VALUE           Mikrotik-Rate-Limit            500M/500M              7
+VALUE           Mikrotik-Rate-Limit            1G/1G                  8
+VALUE           Mikrotik-Rate-Limit            0/0                    9

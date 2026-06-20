@@ -1,0 +1,10 @@
+## 📁 Complete Roles Summary
+
+| Role | File | Description | Hardware | User Capacity |
+|------|------|-------------|----------|---------------|
+| **All-in-One** | `all-in-one.rsc` | Complete ISP solution | RB1100AHx4, CCR1009, CCR1036 | Up to 5,000 |
+| **Border Gateway** | `border-gateway.rsc` | BGP peering, NAT, DDoS | CCR1072, CCR2216 | 50,000+ |
+| **Core Backbone** | `core-backbone.rsc` | OSPF, MPLS, VPLS, HA | CCR1036, CCR1072 | 50,000+ |
+| **POP Distribution** | `pop-distribution.rsc` | PPPoE, Hotspot, VLAN | RB1100AHx4, CCR1009 | Up to 5,000 |
+| **Service Node** | `service-node.rsc` | VPN, Proxy, DNS, Containers | RB1100AHx4, CCR1009 | Up to 5,000 |
+| **Access CPE** | `access-cpe.rsc` | Customer Premise Equipment | hAP, RB750, RB951 | Single User |

@@ -1,0 +1,135 @@
+# ============================================================================
+# Hotspot 2.0 / OpenRoaming RADIUS Rules
+# Version: 5.0.0
+# Description: RADIUS rules for Hotspot 2.0 and OpenRoaming
+# ============================================================================
+
+# ============================================================================
+# OpenRoaming Realm Rules
+# ============================================================================
+
+# OpenRoaming Realm
+realm openroaming.net {
+    auth_pool = openroaming
+    acct_pool = openroaming
+    nostrip = yes
+}
+
+# Local Realm
+realm isp.com.bd {
+    auth_pool = local
+    acct_pool = local
+    nostrip = no
+}
+
+# ============================================================================
+# Hotspot 2.0 Policies
+# ============================================================================
+
+policy hotspot2 {
+    # Check for Hotspot 2.0 attributes
+    if (Mikrotik-Wireless-Hotspot2) {
+        # Apply Hotspot 2.0 specific policies
+        update reply {
+            Session-Timeout = 86400
+            Idle-Timeout = 3600
+        }
+        
+        # Set Hotspot 2.0 specific VLAN
+        update reply {
+            Tunnel-Type = "VLAN"
+            Tunnel-Medium-Type = "IEEE-802"
+            Tunnel-Private-Group-Id = "100"
+        }
+    }
+}
+
+# ============================================================================
+# OpenRoaming Policies
+# ============================================================================
+
+policy openroaming {
+    # OpenRoaming specific settings
+    if (User-Name =~ /.*@openroaming\.net$/ ) {
+        # Set OpenRoaming specific attributes
+        update reply {
+            Session-Timeout = 86400
+            Idle-Timeout = 7200
+            Mikrotik-Hotspot-Profile = "openroaming"
+            Mikrotik-Address-List = "OPENROAMING_USERS"
+        }
+        
+        # Rate limit for OpenRoaming users
+        update reply {
+            Mikrotik-Rate-Limit = "10M/10M"
+        }
+    }
+}
+
+# ============================================================================
+# Hotspot 2.0 Vendor-Specific Attributes
+# ============================================================================
+
+# Hotspot 2.0 OIs (Organizational Identifiers)
+vendor-specific {
+    # Hotspot 2.0 OI for OpenRoaming
+    add oi = AA146B0000
+    add oi = 5A03BA0000
+    add oi = 5A03BA0200
+    add oi = BAA2D00000
+    add oi = 004096
+    
+    # Hotspot 2.0 OI for local deployment
+    add oi = 00AABBCCDDEE
+}
+
+# ============================================================================
+# 802.11u / Hotspot 2.0 Attributes
+# ============================================================================
+
+attribute 802.11u {
+    # Access Network Type
+    access-network-type = "free-public-network"
+    
+    # Internet Availability
+    internet = yes
+    
+    # Venue Information
+    venue-group = "business"
+    venue-type = "unspecified-business"
+    
+    # Domain Names
+    domain-names = "hotspot.isp.com.bd"
+    
+    # Operator Names
+    operator-names = "YourISP:eng"
+    
+    # WAN Metrics
+    wan-metrics = "symmetric,1,50000,50000,0,0"
+}
+
+# ============================================================================
+# NAI Realm Rules
+# ============================================================================
+
+nai-realm {
+    # Local Realm
+    realm isp.com.bd {
+        eap-methods = "eap-ttls:non-eap-pap;eap-tls:"
+    }
+    
+    # OpenRoaming Realm
+    realm openroaming.net {
+        eap-methods = "eap-ttls:;eap-tls:"
+    }
+    
+    # Google Android Realm
+    realm google.com {
+        eap-methods = "eap-ttls:;eap-tls:"
+    }
+    
+    # Apple Realm
+    realm apple.com {
+        eap-methods = "eap-ttls:;eap-tls:"
+    }
+}

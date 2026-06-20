@@ -1,0 +1,433 @@
+###############################################################################
+# TOOL: SECURITY-AUDIT.RSC
+# Version: 5.0.0
+# Description: Security audit and compliance checker
+# Author: Bangladesh ISP Community
+# License: MIT
+###############################################################################
+
+:log info "================================================"
+:log info "SECURITY AUDIT TOOL"
+:log info "Version: 5.0.0"
+:log info "================================================"
+
+# ============================================================================
+# SECURITY AUDIT MAIN SCRIPT
+# ============================================================================
+
+/system script add name=security-audit source={
+    :log info "================================================"
+    :log info "SECURITY AUDIT STARTING"
+    :log info "Time: [/system clock get time]"
+    :log info "Date: [/system clock get date]"
+    :log info "================================================"
+    
+    # ========================================================================
+    # 1. SERVICE AUDIT
+    # ========================================================================
+    
+    :log info "--- 1. SERVICE AUDIT ---"
+    
+    # Disabled Services Check
+    :local disabledServices { "telnet"; "ftp"; "www"; "api"; "api-ssl" }
+    :local enabledServices {}
+    
+    :foreach service in=$disabledServices do={
+        :local status [/ip service get $service disabled]
+        :if ($status = "no") do={
+            :set enabledServices ($enabledServices . $service . " ")
+            :log warning "⚠️  Service $service is ENABLED (should be disabled)"
+        } else={
+            :log info "✅ Service $service is disabled (OK)"
+        }
+    }
+    
+    :if ([:len $enabledServices] > 0) do={
+        :log warning "⚠️  Disabled services found: $enabledServices"
+    }
+    
+    # Secure Services Check
+    :log info "--- Secure Services ---"
+    :local secureServices { "winbox"; "ssh"; "www-ssl" }
+    :foreach service in=$secureServices do={
+        :local address [/ip service get $service address]
+        :local port [/ip service get $service port]
+        :if ($address = "0.0.0.0/0") do={
+            :log warning "⚠️  Service $service is accessible from ANY IP (port: $port)"
+        } else={
+            :log info "✅ Service $service is restricted to: $address (port: $port)"
+        }
+    }
+    
+    # ========================================================================
+    # 2. FIREWALL AUDIT
+    # ========================================================================
+    
+    :log info "--- 2. FIREWALL AUDIT ---"
+    
+    # Firewall Rules Count
+    :local fwRules [/ip firewall filter print count-only]
+    :local rawRules [/ip firewall raw print count-only]
+    :local natRules [/ip firewall nat print count-only]
+    :local mangleRules [/ip firewall mangle print count-only]
+    
+    :log info "Firewall Rules:"
+    :log info "  Filter: $fwRules rules"
+    :log info "  Raw: $rawRules rules"
+    :log info "  NAT: $natRules rules"
+    :log info "  Mangle: $mangleRules rules"
+    
+    # Check for Default Drop Rules
+    :local dropInput [/ip firewall filter find chain=input action=drop]
+    :if ([:len $dropInput] > 0) do={
+        :log info "✅ Input drop rule exists (OK)"
+    } else={
+        :log warning "⚠️  No default drop rule for input chain"
+    }
+    
+    :local dropForward [/ip firewall filter find chain=forward action=drop]
+    :if ([:len $dropForward] > 0) do={
+        :log info "✅ Forward drop rule exists (OK)"
+    } else={
+        :log warning "⚠️  No default drop rule for forward chain"
+    }
+    
+    # Check for DDoS Protection
+    :local ddosRules [/ip firewall raw find comment~"DDOS" or comment~"DDoS" or comment~"ddos"]
+    :if ([:len $ddosRules] > 0) do={
+        :log info "✅ DDoS protection is configured (OK)"
+    } else={
+        :log warning "⚠️  DDoS protection is NOT configured"
+    }
+    
+    # Check for Invalid Packet Drop
+    :local invalidRule [/ip firewall raw find connection-state=invalid]
+    :if ([:len $invalidRule] > 0) do={
+        :log info "✅ Invalid packet drop is configured (OK)"
+    } else={
+        :log warning "⚠️  Invalid packet drop is NOT configured"
+    }
+    
+    # ========================================================================
+    # 3. USER SECURITY AUDIT
+    # ========================================================================
+    
+    :log info "--- 3. USER SECURITY AUDIT ---"
+    
+    # Local Users
+    :local users [/user find]
+    :local userCount [:len $users]
+    :log info "Local users: $userCount"
+    
+    :foreach user in=$users do={
+        :local username [/user get $user name]
+        :local group [/user get $user group]
+        :local password [/user get $user password]
+        
+        :if ([:len $password] < 8) do={
+            :log warning "⚠️  User '$username' has WEAK password (length: [:len $password])"
+        } else={
+            :log info "✅ User '$username' has strong password (OK)"
+        }
+        
+        :if ($group = "full") do={
+            :log info "📌 User '$username' has full admin access"
+        }
+    }
+    
+    # PPPoE Users with Weak Passwords
+    :local weakUsers 0
+    :foreach secret in=[/ppp secret find] do={
+        :local username [/ppp secret get $secret name]
+        :local password [/ppp secret get $secret password]
+        
+        :if ([:len $password] < 8) do={
+            :set weakUsers ($weakUsers + 1)
+        }
+    }
+    
+    :if ($weakUsers > 0) do={
+        :log warning "⚠️  $weakUsers PPPoE users have weak passwords"
+    } else={
+        :log info "✅ All PPPoE users have strong passwords (OK)"
+    }
+    
+    # ========================================================================
+    # 4. SSH SECURITY AUDIT
+    # ========================================================================
+    
+    :log info "--- 4. SSH SECURITY AUDIT ---"
+    
+    :local sshCrypto [/ip ssh get strong-crypto]
+    :if ($sshCrypto = "yes") do={
+        :log info "✅ SSH strong crypto is enabled (OK)"
+    } else={
+        :log warning "⚠️  SSH strong crypto is DISABLED"
+    }
+    
+    :local sshPort [/ip service get ssh port]
+    :if ($sshPort != 22) do={
+        :log info "📌 SSH port changed to: $sshPort (non-default)"
+    }
+    
+    :local sshAddress [/ip service get ssh address]
+    :if ($sshAddress = "0.0.0.0/0") do={
+        :log warning "⚠️  SSH is accessible from ANY IP"
+    }
+    
+    # ========================================================================
+    # 5. LOGGING AUDIT
+    # ========================================================================
+    
+    :log info "--- 5. LOGGING AUDIT ---"
+    
+    :local logRules [/system logging print count-only]
+    :if ($logRules > 10) do={
+        :log info "✅ Logging is properly configured ($logRules rules)"
+    } else={
+        :log warning "⚠️  Logging may be insufficient ($logRules rules)"
+    }
+    
+    :local memoryLog [/system logging find action=memory]
+    :if ([:len $memoryLog] > 0) do={
+        :log info "✅ Memory logging is configured (OK)"
+    }
+    
+    :local diskLog [/system logging find action=disk]
+    :if ([:len $diskLog] > 0) do={
+        :log info "✅ Disk logging is configured (OK)"
+    }
+    
+    # ========================================================================
+    # 6. DNS SECURITY AUDIT
+    # ========================================================================
+    
+    :log info "--- 6. DNS SECURITY AUDIT ---"
+    
+    :local dnsAllowRemote [/ip dns get allow-remote-requests]
+    :if ($dnsAllowRemote = "yes") do={
+        :log info "📌 DNS remote requests are allowed"
+    } else={
+        :log info "✅ DNS remote requests are disabled (OK)"
+    }
+    
+    :local dnsServers [/ip dns get servers]
+    :log info "DNS Servers: $dnsServers"
+    
+    :local dnsCacheSize [/ip dns get cache-size]
+    :log info "DNS Cache Size: $dnsCacheSize"
+    
+    # ========================================================================
+    # 7. SYSTEM SECURITY AUDIT
+    # ========================================================================
+    
+    :log info "--- 7. SYSTEM SECURITY AUDIT ---"
+    
+    # System Identity
+    :local identity [/system identity get name]
+    :log info "System Identity: $identity"
+    
+    # NTP Sync
+    :local ntpEnabled [/system ntp client get enabled]
+    :if ($ntpEnabled = "yes") do={
+        :log info "✅ NTP sync is enabled (OK)"
+    } else={
+        :log warning "⚠️  NTP sync is DISABLED"
+    }
+    
+    # Bandwidth Test Security
+    :local bwAuth [/tool bandwidth-server get authenticate]
+    :if ($bwAuth = "yes") do={
+        :log info "✅ Bandwidth test authentication is enabled (OK)"
+    } else={
+        :log warning "⚠️  Bandwidth test authentication is DISABLED"
+    }
+    
+    # ========================================================================
+    # 8. NETWORK SECURITY AUDIT
+    # ========================================================================
+    
+    :log info "--- 8. NETWORK SECURITY AUDIT ---"
+    
+    # Check for Open Ports
+    :log info "Open Services:"
+    :foreach service in=[/ip service find] do={
+        :local name [/ip service get $service name]
+        :local port [/ip service get $service port]
+        :local disabled [/ip service get $service disabled]
+        :if ($disabled = "no") do={
+            :log info "  - $name (port: $port)"
+        }
+    }
+    
+    # Check for Unused Interfaces
+    :local allInterfaces [/interface find]
+    :local runningInterfaces [/interface find running=yes]
+    :local unusedInterfaces ($allInterfaces - $runningInterfaces)
+    
+    :if ([:len $unusedInterfaces] > 0) do={
+        :log info "📌 Unused interfaces: [:len $unusedInterfaces]"
+    }
+    
+    # ========================================================================
+    # 9. COMPLIANCE CHECK
+    # ========================================================================
+    
+    :log info "--- 9. COMPLIANCE CHECK ---"
+    
+    # Check for PCI-DSS Requirements
+    :local pciIssues 0
+    
+    # Default passwords
+    :if ([find [/system identity get name] "MikroTik"] >= 0) do={
+        :set pciIssues ($pciIssues + 1)
+        :log warning "⚠️  Default system identity detected"
+    }
+    
+    # No default admin password check (if possible)
+    :log info "PCI-DSS Compliance: Check default credentials manually"
+    
+    # ========================================================================
+    # 10. RECOMMENDATIONS
+    # ========================================================================
+    
+    :log info "--- 10. RECOMMENDATIONS ---"
+    
+    :log info "Security Recommendations:"
+    :log info "1. Use strong passwords (min 12 characters with special chars)"
+    :log info "2. Enable 2FA if available"
+    :log info "3. Regularly update RouterOS"
+    :log info "4. Restrict management access to trusted networks only"
+    :log info "5. Enable logging and monitoring"
+    :log info "6. Regularly backup configuration"
+    :log info "7. Disable unused services"
+    :log info "8. Implement DDoS protection"
+    :log info "9. Use encrypted protocols (SSH, HTTPS, WinBox over secure network)"
+    :log info "10. Regular security audits"
+    
+    # ========================================================================
+    # 11. SUMMARY
+    # ========================================================================
+    
+    :log info "--- 11. SUMMARY ---"
+    :log info "Security Audit Complete"
+    :log info "Please review all warnings and recommendations"
+    :log info "================================================"
+}
+
+# ============================================================================
+# SECURITY AUDIT REPORT GENERATOR
+# ============================================================================
+
+/system script add name=security-report source={
+    :local reportFile "security-report.txt"
+    
+    # Create report header
+    /file set $reportFile contents="========================================\n"
+    /file set $reportFile contents="$reportFileSECURITY AUDIT REPORT\n"
+    /file set $reportFile contents="$reportFileDate: [/system clock get date]\n"
+    /file set $reportFile contents="$reportFileTime: [/system clock get time]\n"
+    /file set $reportFile contents="$reportFileRouter: [/system identity get name]\n"
+    /file set $reportFile contents="========================================\n\n"
+    
+    # Service status
+    /file set $reportFile contents="$reportFile--- SERVICES ---\n"
+    :foreach service in=[/ip service find] do={
+        :local name [/ip service get $service name]
+        :local port [/ip service get $service port]
+        :local disabled [/ip service get $service disabled]
+        :local address [/ip service get $service address]
+        /file set $reportFile contents="$reportFile$name: port=$port, disabled=$disabled, address=$address\n"
+    }
+    
+    # Firewall status
+    /file set $reportFile contents="$reportFile\n--- FIREWALL ---\n"
+    :local fwRules [/ip firewall filter print count-only]
+    /file set $reportFile contents="$reportFileFilter rules: $fwRules\n"
+    :local rawRules [/ip firewall raw print count-only]
+    /file set $reportFile contents="$reportFileRaw rules: $rawRules\n"
+    :local natRules [/ip firewall nat print count-only]
+    /file set $reportFile contents="$reportFileNAT rules: $natRules\n"
+    
+    # Users
+    /file set $reportFile contents="$reportFile\n--- USERS ---\n"
+    :foreach user in=[/user find] do={
+        :local username [/user get $user name]
+        :local group [/user get $user group]
+        /file set $reportFile contents="$reportFile$username: group=$group\n"
+    }
+    
+    # System info
+    /file set $reportFile contents="$reportFile\n--- SYSTEM ---\n"
+    :local cpu [/system resource get cpu-load]
+    /file set $reportFile contents="$reportFileCPU Load: $cpu%\n"
+    :local memory [/system resource get free-memory]
+    /file set $reportFile contents="$reportFileFree Memory: $memory\n"
+    :local uptime [/system resource get uptime]
+    /file set $reportFile contents="$reportFileUptime: $uptime\n"
+    
+    /file set $reportFile contents="$reportFile\n========================================\n"
+    /file set $reportFile contents="$reportFileEnd of Report\n"
+    /file set $reportFile contents="$reportFile========================================\n"
+    
+    :log info "Security report generated: $reportFile"
+}
+
+# ============================================================================
+# QUICK SECURITY CHECK
+# ============================================================================
+
+/system script add name=quick-security-check source={
+    :log info "=== QUICK SECURITY CHECK ==="
+    
+    # Check for default admin
+    :local hasDefaultAdmin [/user find name=admin password=""]
+    :if ([:len $hasDefaultAdmin] > 0) do={
+        :log error "🚨 DEFAULT ADMIN PASSWORD DETECTED!"
+        :log error "Please change the admin password immediately!"
+    }
+    
+    # Check for open management ports
+    :local openPorts 0
+    :foreach service in=[/ip service find disabled=no] do={
+        :local name [/ip service get $service name]
+        :local port [/ip service get $service port]
+        :if ($name != "winbox" && $name != "ssh" && $name != "www-ssl") do={
+            :log warning "⚠️  Service $name is enabled on port $port"
+            :set openPorts ($openPorts + 1)
+        }
+    }
+    
+    :if ($openPorts > 0) do={
+        :log warning "⚠️  $openPorts non-standard services are enabled"
+    }
+    
+    # Check DDoS protection
+    :local ddosCount [/ip firewall raw find comment~"DDOS" or comment~"DDoS" or comment~"ddos" or comment~"DDOS-BLACKLIST"]
+    :if ([:len $ddosCount] > 0) do={
+        :log info "✅ DDoS protection configured ($ddosCount rules)"
+    } else={
+        :log warning "⚠️  No DDoS protection found"
+    }
+    
+    :log info "============================="
+}
+
+# ============================================================================
+# SECURITY AUDIT SCHEDULER
+# ============================================================================
+
+/system scheduler add name=security-audit interval=1d start-time=00:00:00 \
+    on-event=security-audit comment="SECURITY_AUDIT"
+
+/system scheduler add name=weekly-security-report interval=7d start-time=01:00:00 \
+    on-event=security-report comment="WEEKLY_SECURITY_REPORT"
+
+:log info "================================================"
+:log info "SECURITY AUDIT TOOLS LOADED"
+:log info "================================================"
+:log info "Available commands:"
+:log info "  /system script run security-audit"
+:log info "  /system script run security-report"
+:log info "  /system script run quick-security-check"
+:log info "================================================"
